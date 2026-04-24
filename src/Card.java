@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 
 import javax.swing.JButton;
 
@@ -41,6 +42,7 @@ public class Card extends JButton // Card IS-A Button
 		}
 		
 		this.setForeground(Color.GRAY);
+		this.setFont(new Font("Arial", Font.BOLD, 20));
 		this.setPreferredSize(new Dimension(70, 60));
 	}
 	
@@ -53,5 +55,18 @@ public class Card extends JButton // Card IS-A Button
 	public int getNumber()
 	{
 		return number;
+	}
+	
+	// Setters - used for discard pile
+	public void setColor(Color newColor)
+	{
+		color = newColor;
+		this.setBackground(newColor);
+	}
+	
+	public void setNumber(int newNumber)
+	{
+		number = newNumber;
+		this.setText(String.valueOf(newNumber));
 	}
 }
