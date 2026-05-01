@@ -18,14 +18,14 @@ import java.awt.event.ActionListener;
 
 public class CardListener implements ActionListener // CardListener IS ActionListener
 {
-	private UnoGame game;
-	private Card card;
-	private Hand hand;
+	private UnoGame gameModel; // CardListener HAS-A game model
+	private Card card; // CardListener HAS-A card
+	private Hand hand; // CardListener HAS-A hand
 	
 	// Constructor
-	public CardListener(UnoGame gameModel, Card newCard, Hand initHand)
+	public CardListener(UnoGame game, Card newCard, Hand initHand)
 	{
-		game = gameModel;
+		gameModel = game;
 		card = newCard;
 		hand = initHand;
 	}
@@ -33,16 +33,16 @@ public class CardListener implements ActionListener // CardListener IS ActionLis
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		boolean cardCheck = game.checkMatchingCard(card);
+		boolean cardCheck = gameModel.checkMatchingCard(card);
 		
 		if (cardCheck)
 		{
 			// Updates discard pile with attributes of card that was clicked on
-			game.updateDiscardPile(card, hand);
+			gameModel.updateDiscardPile(card, hand);
 			
 			System.out.println("PLAYER match found");
 			
-			game.opponentTurn(); // start opponent's turn
+			gameModel.opponentTurn(); // start opponent's turn
 		}
 	}
 }

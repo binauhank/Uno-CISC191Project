@@ -18,13 +18,13 @@ import java.awt.event.ActionListener;
 
 public class DrawListener implements ActionListener // DrawListener IS ActionListener
 {
-	private UnoGame game;
+	private UnoGame gameModel; // DrawListener HAS-A game model
 	private Hand playerHand; // DrawListener HAS-A player hand
 	
 	// Constructor
-	public DrawListener(UnoGame gameModel, Hand hand)
+	public DrawListener(UnoGame game, Hand hand)
 	{
-		game = gameModel;
+		gameModel = game;
 		playerHand = hand;
 	}
 	
@@ -37,16 +37,16 @@ public class DrawListener implements ActionListener // DrawListener IS ActionLis
 		System.out.println("PLAYER draw one");
 		
 		// Check if newly drawn card matches discard pile
-		boolean cardCheck = game.checkMatchingCard(playerHand.getLastCard());
+		boolean cardCheck = gameModel.checkMatchingCard(playerHand.getLastCard());
 		
 		if (cardCheck) // if there is a match, update discard pile
 		{
-			game.updateDiscardPile(playerHand.getLastCard(), playerHand);
+			gameModel.updateDiscardPile(playerHand.getLastCard(), playerHand);
 			
 			System.out.println("PLAYER card draw matches");
 		}
 		
-		game.opponentTurn(); // start opponent's turn
+		gameModel.opponentTurn(); // start opponent's turn
 		
 		// Updates UI for newly added components
 		playerHand.revalidate();

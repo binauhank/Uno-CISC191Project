@@ -23,17 +23,17 @@ import javax.swing.JPanel;
 public class Hand extends JPanel
 {
 	private ArrayList<Card> cards; // Hand HAS-MANY Cards
+	private UnoGame gameModel; // Hand HAS-A game model
 	private boolean isPlayer; // this boolean checks for if this object is the player's hand or the opponent's hand
-	private UnoGame game;
 	
 	// Constructor
-	public Hand(boolean playerCheck, UnoGame gameModel)
+	public Hand(boolean playerCheck, UnoGame game)
 	{
 		this.setLayout(new FlowLayout());
 		
 		cards = new ArrayList<Card>();
 		isPlayer = playerCheck;
-		game = gameModel;
+		gameModel = game;
 		
 		this.drawCard(7); // start game with 7 cards
 	}
@@ -50,22 +50,39 @@ public class Hand extends JPanel
 			int randomIndex = rand.nextInt(4);
 			Color randomColor = colors[randomIndex];
 			
-			// Generate random number between 1-9
-			int randomNumber = rand.nextInt(9) + 1;
-			
-			// TODO - replace above
-//			int randomNumber = rand.nextInt(9);
-//			if (randomNumber == 0)
-//			{
-//				generate draw two card
-//			}
+			// Generate random number between 1-12
+			int randomNumber = rand.nextInt(12) + 1;
 			
 			// Create new card using randomColor and randomNumber, adds it to list and JPanel
-			// TODO - if (randomNumber > 0) ... insert code below
-			Card card = new Card(randomColor, randomNumber, isPlayer);
-			card.addActionListener(new CardListener(game, card, this));
-			cards.add(card);
-			this.add(card);
+			// Numbers 10-12 are not real in Uno, so I'll use them for the special cards
+			if (randomNumber == 10) // Draw Two card
+			{
+				DrawTwoCard drawTwoCard = new DrawTwoCard(randomColor, randomNumber, isPlayer);
+				drawTwoCard.addActionListener(new CardListener(gameModel, drawTwoCard, this));
+				cards.add(drawTwoCard);
+				this.add(drawTwoCard);
+			}
+			else if (randomNumber == 11) // Draw Four card
+			{
+				DrawFourCard drawFourCard = new DrawFourCard(Color.WHITE, randomNumber, isPlayer);
+				drawFourCard.addActionListener(new CardListener(gameModel, drawFourCard, this));
+				cards.add(drawFourCard);
+				this.add(drawFourCard);
+			}
+			else if (randomNumber == 12) // Wild card
+			{
+				WildCard wildCard = new WildCard(Color.WHITE, randomNumber, isPlayer);
+				wildCard.addActionListener(new CardListener(gameModel, wildCard, this));
+				cards.add(wildCard);
+				this.add(wildCard);
+			}
+			else // Normal card (1-9)
+			{
+				Card card = new Card(randomColor, randomNumber, isPlayer);
+				card.addActionListener(new CardListener(gameModel, card, this));
+				cards.add(card);
+				this.add(card);
+			}		
 		}
 	}
 	
@@ -88,6 +105,11 @@ public class Hand extends JPanel
 	public Card getLastCard()
 	{
 		return cards.getLast(); // retrieve latest card drawn to hand
+	}
+	
+	public boolean checkPlayer()
+	{
+		return isPlayer; // returns true if this object is the player's hand, false if opponent's hand
 	}
 	
 	// Used during opponent's turn
