@@ -44,11 +44,9 @@ public class UnoGame extends JFrame
 		this.add(opponentHand, BorderLayout.NORTH);
 		
 		// Generate random color and number for card on top of discard pile at the start of the game
-		Color[] colors = {Color.RED, Color.YELLOW, Color.BLUE, Color.GREEN};
 		Random rand = new Random();
 		
-		int randomIndex = rand.nextInt(4);
-		Color randomColor = colors[randomIndex];
+		Color randomColor = randomColor();
 		int randomNumber = rand.nextInt(9) + 1;
 		
 		discardPile = new Card(randomColor, randomNumber, true); // setting true to not affect button's color and size, will not be adding listener to prevent an event on click
@@ -96,6 +94,9 @@ public class UnoGame extends JFrame
 		discardPile.setColor(card.getColor());
 		discardPile.setNumber(card.getNumber());
 		
+		// Remove card from hand
+		hand.removeCard(card);
+		
 		// Check if card is a Draw Two card
 		if (card instanceof DrawTwoCard)
 		{
@@ -119,19 +120,47 @@ public class UnoGame extends JFrame
 		if (card instanceof DrawFourCard)
 		{
 			discardPile.setText("+4");
-			// TODO - prompt to select color, then set discard pile's color
-			// TODO - force draw 4 (same logic as before)
+			
+			if (hand.checkPlayer()) // if hand belongs to player, use selectColor() method to prompt a selection
+			{
+				Color colorChosen = selectColor();
+				discardPile.setColor(colorChosen);
+				
+				opponentHand.drawCard(4); // force opponent to draw four
+				
+				System.out.println("PLAYER draw four played - " + colorChosen);
+			}
+			else // if hand belongs to opponent, select a random color
+			{
+				Color colorChosen = randomColor();
+				discardPile.setColor(colorChosen);
+				
+				playerHand.drawCard(4); // force player to draw four
+				
+				System.out.println("OPPONENT draw four played - " + colorChosen);
+			}
 		}
 		
 		// Check if card is a Wild card
 		if (card instanceof WildCard)
 		{
 			discardPile.setText("W");
-			// TODO - prompt to select color, then set discard pile's color
+			
+			if (hand.checkPlayer()) // if hand belongs to player, use selectColor() method to prompt a selection
+			{
+				Color colorChosen = selectColor();
+				
+				discardPile.setColor(colorChosen);
+				System.out.println("PLAYER wild card - " + colorChosen);
+			}
+			else // if hand belongs to opponent, select a random color
+			{
+				Color colorChosen = randomColor();
+				
+				discardPile.setColor(colorChosen);
+				System.out.println("OPPONENT wild card - " + colorChosen);
+			}
 		}
-								
-		// Remove card from hand
-		hand.removeCard(card);
 		
 		// Check win conditions
 		if (playerWin())
@@ -174,6 +203,41 @@ public class UnoGame extends JFrame
 				
 				System.out.println("OPPONENT card draw matches");
 			}
+		}
+	}
+	
+	// Generate a random color
+	public Color randomColor()
+	{
+		Color[] colors = {Color.RED, Color.YELLOW, Color.BLUE, Color.GREEN};
+		Random rand = new Random();
+		
+		int randomIndex = rand.nextInt(4);
+		return colors[randomIndex];
+	}
+	
+	public Color selectColor()
+	{
+		Object[] options = {"Red", "Yellow", "Blue", "Green"}; // array used for options in JOptionPane
+		
+		int colorSelected = JOptionPane.showOptionDialog(this, "Select a color!", "Wild Card Played", 0, 3, null, options, options[0]);
+		
+		// Return color based on option selected
+		if (colorSelected == 0)
+		{
+			return Color.RED;
+		}
+		if (colorSelected == 1)
+		{
+			return Color.YELLOW;
+		}
+		if (colorSelected == 2)
+		{
+			return Color.BLUE;
+		}
+		else
+		{
+			return Color.GREEN;
 		}
 	}
 	

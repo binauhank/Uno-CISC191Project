@@ -47,8 +47,7 @@ public class Hand extends JPanel
 		for (int i = 0; i < howManyCards; i++)
 		{
 			// Generate card color using a randomly generated array index
-			int randomIndex = rand.nextInt(4);
-			Color randomColor = colors[randomIndex];
+			Color randomColor = gameModel.randomColor();
 			
 			// Generate random number between 1-12
 			int randomNumber = rand.nextInt(12) + 1;
