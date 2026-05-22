@@ -21,7 +21,7 @@ public class DrawTwoCard extends Card // DrawTwoCard IS-A Card
 	{
 		super(initColor, initNumber, playerCheck);
 		
-		if (playerCheck)
+		if (playerCheck) // if card is in player's hand, set text
 		{
 			this.setText("+2");
 		}

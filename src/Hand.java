@@ -63,14 +63,14 @@ public class Hand extends JPanel
 			}
 			else if (randomNumber == 11) // Draw Four card
 			{
-				DrawFourCard drawFourCard = new DrawFourCard(Color.WHITE, randomNumber, isPlayer);
+				DrawFourCard drawFourCard = new DrawFourCard(randomNumber, isPlayer);
 				drawFourCard.addActionListener(new CardListener(gameModel, drawFourCard, this));
 				cards.add(drawFourCard);
 				this.add(drawFourCard);
 			}
 			else if (randomNumber == 12) // Wild card
 			{
-				WildCard wildCard = new WildCard(Color.WHITE, randomNumber, isPlayer);
+				WildCard wildCard = new WildCard(randomNumber, isPlayer);
 				wildCard.addActionListener(new CardListener(gameModel, wildCard, this));
 				cards.add(wildCard);
 				this.add(wildCard);

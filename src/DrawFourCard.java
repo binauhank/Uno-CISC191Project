@@ -15,13 +15,13 @@ import java.awt.Color;
 * Version: 2026-04-30
 */
 
-public class DrawFourCard extends Card
+public class DrawFourCard extends Card // DrawFourCard IS-A Card
 {
-	public DrawFourCard(Color initColor, int initNumber, boolean playerCheck)
+	public DrawFourCard(int initNumber, boolean playerCheck) // this card starts as white, no need to set a specific color
 	{
-		super(initColor, initNumber, playerCheck);
+		super(Color.WHITE, initNumber, playerCheck);
 		
-		if (playerCheck)
+		if (playerCheck) // if card is in player's hand, set text
 		{
 			this.setText("+4");
 		}

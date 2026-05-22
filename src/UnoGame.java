@@ -1,7 +1,11 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Random;
 
 import javax.swing.JButton;
@@ -29,6 +33,8 @@ public class UnoGame extends JFrame
 	private Hand playerHand; // UnoGame HAS-A player hand
 	private Hand opponentHand; // UnoGame HAS-AN opponent hand
 	private Card discardPile; // UnoGame HAS-A discard pile
+	private File gameLog; // UnoGame HAS-A game log
+	private PrintWriter logWriter; // UnoGame HAS-A log writer
 	
 	public UnoGame()
 	{
@@ -61,6 +67,17 @@ public class UnoGame extends JFrame
 		drawButton.setText("Draw");
 		drawButton.addActionListener(new DrawListener(this, playerHand));
 		this.add(drawButton, BorderLayout.EAST);
+		
+		gameLog = new File("GameLog.txt");
+
+		try
+		{
+			logWriter = new PrintWriter(gameLog);
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
@@ -106,13 +123,21 @@ public class UnoGame extends JFrame
 			{
 				opponentHand.drawCard(2);
 				
-				System.out.println("PLAYER draw two played");
+				opponentHand.revalidate(); // update UI
+				opponentHand.repaint();
+				
+				String str = "Player - " + convertColorToString(card.getColor()) + " +2";
+				updateGameLog(str);
 			}
 			else // if the hand that this card belongs to is the opponent's, force player to draw two
 			{
 				playerHand.drawCard(2);
 				
-				System.out.println("OPPONENT draw two played");
+				playerHand.revalidate();
+				playerHand.repaint();
+				
+				String str = "Opponent - " + convertColorToString(card.getColor()) + " +2";
+				updateGameLog(str);
 			}
 		}
 		
@@ -128,7 +153,11 @@ public class UnoGame extends JFrame
 				
 				opponentHand.drawCard(4); // force opponent to draw four
 				
-				System.out.println("PLAYER draw four played - " + colorChosen);
+				opponentHand.revalidate();
+				opponentHand.repaint();
+				
+				String str = "Player - " + convertColorToString(colorChosen) + " +4";
+				updateGameLog(str);
 			}
 			else // if hand belongs to opponent, select a random color
 			{
@@ -137,7 +166,11 @@ public class UnoGame extends JFrame
 				
 				playerHand.drawCard(4); // force player to draw four
 				
-				System.out.println("OPPONENT draw four played - " + colorChosen);
+				playerHand.revalidate();
+				playerHand.repaint();
+				
+				String str = "Opponent - " + convertColorToString(colorChosen) + " +4";
+				updateGameLog(str);
 			}
 		}
 		
@@ -151,28 +184,42 @@ public class UnoGame extends JFrame
 				Color colorChosen = selectColor();
 				
 				discardPile.setColor(colorChosen);
-				System.out.println("PLAYER wild card - " + colorChosen);
+				
+				String str = "Player - " + convertColorToString(colorChosen) + " Wild";
+				updateGameLog(str);
 			}
 			else // if hand belongs to opponent, select a random color
 			{
 				Color colorChosen = randomColor();
 				
 				discardPile.setColor(colorChosen);
-				System.out.println("OPPONENT wild card - " + colorChosen);
+				
+				String str = "Opponent - " + convertColorToString(colorChosen) + " Wild";
+				updateGameLog(str);
 			}
 		}
 		
 		// Check win conditions
 		if (playerWin())
 		{
+			logWriter.close();
+			
 			JOptionPane.showMessageDialog(this, "You win!", "Game Over!", JOptionPane.INFORMATION_MESSAGE); // pop-up window upon victory
+			
+			// TODO - add button to pop-up window "Open Game Log"
+			// Desktop.getDesktop().open(gameLog);
 			
 			System.exit(0); // closes game
 		}
 		
 		if (opponentWin())
 		{
+			logWriter.close();
+			
 			JOptionPane.showMessageDialog(this, "You lost.", "Game Over!", JOptionPane.INFORMATION_MESSAGE); // pop-up window upon defeat
+			
+			// TODO - add button to pop-up window "Open Game Log"
+			// Desktop.getDesktop().open(gameLog);
 			
 			System.exit(0); // closes game
 		}
@@ -184,24 +231,35 @@ public class UnoGame extends JFrame
 		
 		if (opponentCard != null) // if there is a matching card in the opponent's hand
 		{
-			this.updateDiscardPile(opponentCard, opponentHand);
+			if (opponentCard.getNumber() < 10)
+			{
+				String str = "Opponent - " + convertColorToString(opponentCard.getColor()) + " " + opponentCard.getNumber();
+				updateGameLog(str);
+			}
 			
-			System.out.println("OPPONENT match found"); // temporary prints for making sure things work properly
+			this.updateDiscardPile(opponentCard, opponentHand);
 		}
 		else // otherwise, draw one card
 		{
 			opponentHand.drawCard(1);
 			
-			System.out.println("OPPONENT draw one");
+			String str = "Opponent - Draw 1";
+			updateGameLog(str);
 			
 			// Check if newly drawn card matches discard pile
 			boolean cardCheck = this.checkMatchingCard(opponentHand.getLastCard());
 			
 			if (cardCheck) // if there is a match, update discard pile
 			{
-				this.updateDiscardPile(opponentHand.getLastCard(), opponentHand);
+				if (opponentHand.getLastCard().getNumber() < 10)
+				{
+					str = "Opponent - " + convertColorToString(opponentHand.getLastCard().getColor())
+							+ " " + opponentHand.getLastCard().getNumber();
+					
+					updateGameLog(str);
+				}
 				
-				System.out.println("OPPONENT card draw matches");
+				this.updateDiscardPile(opponentHand.getLastCard(), opponentHand);
 			}
 		}
 	}
@@ -216,6 +274,7 @@ public class UnoGame extends JFrame
 		return colors[randomIndex];
 	}
 	
+	// Display pop-up window for selecting a color (used when Wild Card or Draw Four Card is played)
 	public Color selectColor()
 	{
 		Object[] options = {"Red", "Yellow", "Blue", "Green"}; // array used for options in JOptionPane
@@ -239,6 +298,34 @@ public class UnoGame extends JFrame
 		{
 			return Color.GREEN;
 		}
+	}
+	
+	// Converts color into a readable string
+	public String convertColorToString(Color color)
+	{
+		if (color == Color.RED)
+		{
+			return "Red";
+		}
+		if (color == Color.YELLOW)
+		{
+			return "Yellow";
+		}
+		if (color == Color.BLUE)
+		{
+			return "Blue";
+		}
+		else
+		{
+			return "Green";
+		}
+	}
+	
+	// Pass in string to game log file
+	public void updateGameLog(String str)
+	{
+		logWriter.println(str);
+		logWriter.flush();
 	}
 	
 	// Return true if player has zero cards in their hand - player wins

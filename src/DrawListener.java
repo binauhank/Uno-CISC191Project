@@ -34,16 +34,23 @@ public class DrawListener implements ActionListener // DrawListener IS ActionLis
 		// Draw one card
 		playerHand.drawCard(1);
 		
-		System.out.println("PLAYER draw one");
+		String str = "Player - Draw 1";
+		gameModel.updateGameLog(str);
 		
 		// Check if newly drawn card matches discard pile
 		boolean cardCheck = gameModel.checkMatchingCard(playerHand.getLastCard());
 		
 		if (cardCheck) // if there is a match, update discard pile
 		{
-			gameModel.updateDiscardPile(playerHand.getLastCard(), playerHand);
+			if (playerHand.getLastCard().getNumber() < 10)
+			{
+				str = "Player - " + gameModel.convertColorToString(playerHand.getLastCard().getColor())
+				+ " " + playerHand.getLastCard().getNumber();
+				
+				gameModel.updateGameLog(str);
+			}
 			
-			System.out.println("PLAYER card draw matches");
+			gameModel.updateDiscardPile(playerHand.getLastCard(), playerHand);
 		}
 		
 		gameModel.opponentTurn(); // start opponent's turn

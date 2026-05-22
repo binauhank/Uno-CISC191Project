@@ -40,7 +40,11 @@ public class CardListener implements ActionListener // CardListener IS ActionLis
 			// Updates discard pile with attributes of card that was clicked on
 			gameModel.updateDiscardPile(card, hand);
 			
-			System.out.println("PLAYER match found");
+			if (card.getNumber() < 10)
+			{
+				String str = "Player - " + gameModel.convertColorToString(card.getColor()) + " " + card.getNumber();
+				gameModel.updateGameLog(str);
+			}
 			
 			gameModel.opponentTurn(); // start opponent's turn
 		}

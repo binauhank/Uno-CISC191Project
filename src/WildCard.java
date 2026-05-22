@@ -15,13 +15,13 @@ import java.awt.Color;
 * Version: 2026-04-30
 */
 
-public class WildCard extends Card
+public class WildCard extends Card // WildCard IS-A Card
 {
-	public WildCard(Color initColor, int initNumber, boolean playerCheck)
+	public WildCard(int initNumber, boolean playerCheck) // this card starts as white, no need to set a specific color
 	{
-		super(initColor, initNumber, playerCheck);
+		super(Color.WHITE, initNumber, playerCheck);
 		
-		if (playerCheck)
+		if (playerCheck) // if card is in player's hand, set text
 		{
 			this.setText("W");
 		}
