@@ -20,7 +20,7 @@ import javax.swing.JPanel;
 * Version: 2026-04-16
 */
 
-public class Hand extends JPanel
+public class Hand extends JPanel // Hand IS-A JPanel
 {
 	private ArrayList<Card> cards; // Hand HAS-MANY Cards
 	private UnoGame gameModel; // Hand HAS-A game model
@@ -118,7 +118,7 @@ public class Hand extends JPanel
 		
 		for (Card c : cards) // checks each card in the hand for matching color or number with the discard pile
 		{
-			if (c.getColor() == discardPile.getColor() || c.getNumber() == discardPile.getNumber())
+			if (c.getColor().equals(discardPile.getColor()) || c.getNumber() == discardPile.getNumber())
 			{
 				match = c;
 			}

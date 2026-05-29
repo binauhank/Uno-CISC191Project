@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
 
@@ -28,7 +29,7 @@ import javax.swing.JPanel;
 * Version: 2026-04-16
 */
 
-public class UnoGame extends JFrame
+public class UnoGame extends JFrame // UnoGame IS-A JFrame
 {
 	private Hand playerHand; // UnoGame HAS-A player hand
 	private Hand opponentHand; // UnoGame HAS-AN opponent hand
@@ -49,6 +50,7 @@ public class UnoGame extends JFrame
 		this.add(playerHand, BorderLayout.SOUTH);
 		this.add(opponentHand, BorderLayout.NORTH);
 		
+		// Discard Pile
 		// Generate random color and number for card on top of discard pile at the start of the game
 		Random rand = new Random();
 		
@@ -76,7 +78,7 @@ public class UnoGame extends JFrame
 		}
 		catch (FileNotFoundException e)
 		{
-			e.printStackTrace();
+			e.printStackTrace(); // prints stack trace if attempt to open file fails
 		}
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -92,12 +94,12 @@ public class UnoGame extends JFrame
 	
 	public boolean checkMatchingCard(Card cardToCheck)
 	{
-		if (cardToCheck.getColor() == Color.WHITE) // if Wild Card or Draw Four Card
+		if (cardToCheck.getColor().equals(Color.WHITE)) // if Wild Card or Draw Four Card
 		{
 			return true;
 		}
 		
-		if (cardToCheck.getColor() == discardPile.getColor() || cardToCheck.getNumber() == discardPile.getNumber()) // color matches OR number matches
+		if (cardToCheck.getColor().equals(discardPile.getColor()) || cardToCheck.getNumber() == discardPile.getNumber()) // color matches OR number matches
 		{
 			return true;
 		}
@@ -148,29 +150,43 @@ public class UnoGame extends JFrame
 			
 			if (hand.checkPlayer()) // if hand belongs to player, use selectColor() method to prompt a selection
 			{
-				Color colorChosen = selectColor();
-				discardPile.setColor(colorChosen);
+				try
+				{
+					Color colorChosen = selectColor("Draw Four");
+					discardPile.setColor(colorChosen);
+					
+					String str = "Player - " + convertColorToString(colorChosen) + " +4";
+					updateGameLog(str);
+				}
+				catch (InvalidOptionException e)
+				{
+					// If InvalidOptionException is thrown (player closes the Select Color window), pick a random color and print to console
+					Color randomColor = randomColor();
+					discardPile.setColor(randomColor);
+					
+					String str = "Player - " + convertColorToString(randomColor) + " +4";
+					updateGameLog(str);
+					
+					System.out.println(e.getMessage());
+				}
 				
 				opponentHand.drawCard(4); // force opponent to draw four
 				
 				opponentHand.revalidate();
 				opponentHand.repaint();
-				
-				String str = "Player - " + convertColorToString(colorChosen) + " +4";
-				updateGameLog(str);
 			}
 			else // if hand belongs to opponent, select a random color
 			{
-				Color colorChosen = randomColor();
-				discardPile.setColor(colorChosen);
+				Color randomColor = randomColor();
+				discardPile.setColor(randomColor);
+				
+				String str = "Opponent - " + convertColorToString(randomColor) + " +4";
+				updateGameLog(str);
 				
 				playerHand.drawCard(4); // force player to draw four
 				
 				playerHand.revalidate();
 				playerHand.repaint();
-				
-				String str = "Opponent - " + convertColorToString(colorChosen) + " +4";
-				updateGameLog(str);
 			}
 		}
 		
@@ -181,57 +197,70 @@ public class UnoGame extends JFrame
 			
 			if (hand.checkPlayer()) // if hand belongs to player, use selectColor() method to prompt a selection
 			{
-				Color colorChosen = selectColor();
-				
-				discardPile.setColor(colorChosen);
-				
-				String str = "Player - " + convertColorToString(colorChosen) + " Wild";
-				updateGameLog(str);
+				try
+				{
+					Color colorChosen = selectColor("Wild Card");
+					discardPile.setColor(colorChosen);
+					
+					String str = "Player - " + convertColorToString(colorChosen) + " Wild";
+					updateGameLog(str);
+				}
+				catch (InvalidOptionException e)
+				{
+					// If InvalidOptionException is thrown (player closes the Select Color window), use a random color and print to console
+					Color randomColor = randomColor();
+					discardPile.setColor(randomColor);
+					
+					String str = "Player - " + convertColorToString(randomColor) + " Wild";
+					updateGameLog(str);
+					
+					System.out.println(e.getMessage());
+				}
 			}
 			else // if hand belongs to opponent, select a random color
 			{
-				Color colorChosen = randomColor();
+				Color randomColor = randomColor();
+				discardPile.setColor(randomColor);
 				
-				discardPile.setColor(colorChosen);
-				
-				String str = "Opponent - " + convertColorToString(colorChosen) + " Wild";
+				String str = "Opponent - " + convertColorToString(randomColor) + " Wild";
 				updateGameLog(str);
 			}
 		}
 		
-		// Check win conditions
+		// Check win conditions - if player wins/loses, end the game
 		if (playerWin())
 		{
-			logWriter.close();
-			
-			JOptionPane.showMessageDialog(this, "You win!", "Game Over!", JOptionPane.INFORMATION_MESSAGE); // pop-up window upon victory
-			
-			// TODO - add button to pop-up window "Open Game Log"
-			// Desktop.getDesktop().open(gameLog);
-			
-			System.exit(0); // closes game
+			try
+			{
+				endGame("You Win!");
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 		
 		if (opponentWin())
 		{
-			logWriter.close();
-			
-			JOptionPane.showMessageDialog(this, "You lost.", "Game Over!", JOptionPane.INFORMATION_MESSAGE); // pop-up window upon defeat
-			
-			// TODO - add button to pop-up window "Open Game Log"
-			// Desktop.getDesktop().open(gameLog);
-			
-			System.exit(0); // closes game
+			try
+			{
+				endGame("You lost.");
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 	
+	// Opponent's turn - checks for matching card in their hand, plays it if found
 	public void opponentTurn()
 	{
 		Card opponentCard = opponentHand.findMatch(discardPile);
 		
 		if (opponentCard != null) // if there is a matching card in the opponent's hand
 		{
-			if (opponentCard.getNumber() < 10)
+			if (opponentCard.getNumber() < 10) // if standard card (not Draw 2/4 or Wild)
 			{
 				String str = "Opponent - " + convertColorToString(opponentCard.getColor()) + " " + opponentCard.getNumber();
 				updateGameLog(str);
@@ -275,11 +304,11 @@ public class UnoGame extends JFrame
 	}
 	
 	// Display pop-up window for selecting a color (used when Wild Card or Draw Four Card is played)
-	public Color selectColor()
+	public Color selectColor(String cardType) throws InvalidOptionException
 	{
 		Object[] options = {"Red", "Yellow", "Blue", "Green"}; // array used for options in JOptionPane
 		
-		int colorSelected = JOptionPane.showOptionDialog(this, "Select a color!", "Wild Card Played", 0, 3, null, options, options[0]);
+		int colorSelected = JOptionPane.showOptionDialog(this, "Select a color!", cardType, 0, 3, null, options, options[0]);
 		
 		// Return color based on option selected
 		if (colorSelected == 0)
@@ -294,30 +323,38 @@ public class UnoGame extends JFrame
 		{
 			return Color.BLUE;
 		}
-		else
+		if (colorSelected == 3)
 		{
 			return Color.GREEN;
+		}
+		else
+		{
+			throw (new InvalidOptionException(cardType));
 		}
 	}
 	
 	// Converts color into a readable string
 	public String convertColorToString(Color color)
 	{
-		if (color == Color.RED)
+		if (color.equals(Color.RED))
 		{
 			return "Red";
 		}
-		if (color == Color.YELLOW)
+		if (color.equals(Color.YELLOW))
 		{
 			return "Yellow";
 		}
-		if (color == Color.BLUE)
+		if (color.equals(Color.BLUE))
 		{
 			return "Blue";
 		}
-		else
+		if (color.equals(Color.GREEN))
 		{
 			return "Green";
+		}
+		else
+		{
+			return "Invalid";
 		}
 	}
 	
@@ -338,5 +375,24 @@ public class UnoGame extends JFrame
 	public boolean opponentWin()
 	{
 		return opponentHand.getNumCards() == 0;
+	}
+	
+	// Close PrintWriter and opens pop-up window once game is over
+	public void endGame(String message) throws IOException
+	{
+		logWriter.close();
+		
+		Object[] options = {"Open Game Log", "Close Game"};
+		int optionSelected = JOptionPane.showOptionDialog(this, message, "Game Over!", 0, 3, null, options, options[0]);
+		
+		if (optionSelected == 0) // "Open Game Log" button
+		{
+			Desktop.getDesktop().open(gameLog); // if this button is clicked, opens game log that documents each turn
+			endGame(message); // reopen window
+		}
+		if (optionSelected == 1) // "Close Game" button
+		{
+			System.exit(0); // close window
+		}
 	}
 }
